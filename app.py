@@ -6,14 +6,12 @@ from streamlit_folium import st_folium
 import glob
 
 # --- CONFIGURATION ---
-# Map the dashboard's display names to your CSV's exact column headers. 
-# Update the values on the right to match your CSV exactly (e.g., if Rainfall is 'RF', change "Rainfall" to "RF")
 COLUMN_MAP = {
     "Rainfall": "Rainfall",               # UPDATE THIS
     "Minimum Temperature": "MIN_TEMP",    # UPDATE THIS
-    "Average Temperature": "DRY",         # Using 'DRY' from your screenshot as a placeholder
+    "Average Temperature": "DRY",         # UPDATE THIS
     "Maximum Temperature": "MAX_TEMP",    # UPDATE THIS
-    "Pressure": "SLP",                    # Using 'SLP' (Sea Level Pressure) from your screenshot
+    "Pressure": "SLP",                    # UPDATE THIS
     "Wind Speed": "WIND_SPD",             # UPDATE THIS
     "Wind Direction": "WIND_DIR"          # UPDATE THIS
 }
@@ -42,12 +40,16 @@ def load_data():
     df = pd.merge(weather_data, stations, on='STATION NAME', how='inner')
     
     # Combine YEAR, MTH, DAY, and HOUR into a Datetime object
+    # FIX: Handle meteorological hour '24' by temporarily shifting to 0-23, then adding 1 hour back.
+    adjusted_hour = df['HOUR'].astype(int) - 1
+    
     df['Datetime_UTC'] = pd.to_datetime(
         df['YEAR'].astype(str) + '-' + 
         df['MTH'].astype(str) + '-' + 
         df['DAY'].astype(str) + ' ' + 
-        df['HOUR'].astype(str) + ':00:00'
-    )
+        adjusted_hour.astype(str) + ':00:00'
+    ) + pd.Timedelta(hours=1)
+    
     # Create MYT datetime (UTC + 8)
     df['Datetime_MYT'] = df['Datetime_UTC'] + pd.Timedelta(hours=8)
         
